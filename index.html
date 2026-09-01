@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💧 水樽保溫大作戰！</title>
+    <!-- 從網路載入繪圖工具 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', '微軟正黑體', sans-serif;
+            background-color: #ffeaa7;
+            background-image: radial-gradient(#fdcb6e 2px, transparent 2px);
+            background-size: 30px 30px;
+            color: #2d3436;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #d63031;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px #fab1a0;
+        }
+        .card {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 25px;
+            border: 4px solid #2d3436;
+            box-shadow: 8px 8px 0px #0984e3;
+            margin-bottom: 25px;
+        }
+        .input-area {
+            text-align: center;
+            background-color: #81ecec;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px dashed #00cec9;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .input-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        input[type="number"] {
+            font-size: 24px;
+            padding: 8px;
+            width: 90px;
+            text-align: center;
+            border: 3px solid #2d3436;
+            border-radius: 10px;
+            font-family: 'Comic Sans MS', '微軟正黑體', sans-serif;
+        }
+        button {
+            background-color: #ff7675;
+            color: white;
+            border: 3px solid #2d3436;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #2d3436;
+            transition: all 0.2s;
+            display: block;
+            margin: 20px auto;
+            font-family: 'Comic Sans MS', '微軟正黑體', sans-serif;
+        }
+        button:hover {
+            transform: translateY(4px) translateX(4px);
+            box-shadow: 0px 0px 0px #2d3436;
+            background-color: #d63031;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 3px solid #2d3436;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+            display: none;
+            background-color: #fff;
+        }
+        th, td {
+            border-bottom: 2px solid #2d3436;
+            border-right: 2px solid #2d3436;
+            padding: 12px;
+            text-align: center;
+            font-size: 18px;
+        }
+        th { background-color: #74b9ff; }
+        th:last-child, td:last-child { border-right: none; }
+        tr:last-child td { border-bottom: none; }
+        
+        #chartContainer {
+            width: 100%;
+            margin-top: 30px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>💧 水樽保溫大作戰！🌡️</h1>
+
+    <div class="card">
+        <h2>🛠️ 任務總部：設定環境與熱水</h2>
+        <p>真正的科學家會考慮環境的影響喔！請輸入目前的室內溫度，以及水樽裡熱水的初始溫度，我們來看看 30 分鐘後會發生什麼事！</p>
+        
+        <div class="input-area">
+            <div class="input-row">
+                <label for="roomTemp" style="font-size: 22px; font-weight: bold;">🏠 測量室內溫度：</label>
+                <input type="number" id="roomTemp" value="25" min="-10" max="50"> 
+                <span style="font-size: 22px; font-weight: bold;">°C</span>
+            </div>
+            <div class="input-row">
+                <label for="startTemp" style="font-size: 22px; font-weight: bold;">🌡️ 輸入熱水溫度：</label>
+                <input type="number" id="startTemp" value="80" min="0" max="100"> 
+                <span style="font-size: 22px; font-weight: bold;">°C</span>
+            </div>
+        </div>
+
+        <button onclick="calculateAndShow()">🚀 開始時光旅行 (觀看結果)</button>
+    </div>
+
+    <div class="card" id="resultCard" style="display: none;">
+        <h2>📊 實驗觀測報告</h2>
+        
+        <table id="dataTable">
+            <thead>
+                <tr id="timeRow">
+                    <th>時間 (分鐘)</th>
+                    <th>0</th><th>5</th><th>10</th><th>15</th><th>20</th><th>25</th><th>30</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="rowA"><td><strong>🥶 一般水樽</strong></td></tr>
+                <tr id="rowB"><td><strong>☁️ 塞棉花</strong></td></tr>
+                <tr id="rowC"><td><strong>🧣 包毛巾</strong></td></tr>
+            </tbody>
+        </table>
+
+        <div id="chartContainer">
+            <canvas id="coolingChart"></canvas>
+            <p style="text-align: center; margin-top: 15px; font-size: 18px; background-color: #ffeaa7; padding: 10px; border-radius: 10px; border: 2px dashed #e17055;">
+                <strong>💡 科學小發現：</strong> 不管保溫效果多好，水溫最後都會慢慢靠近「室內溫度」喔！這叫做<span style="color:#d63031; font-weight:bold;">熱平衡</span>！⚖️
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function calculateAndShow() {
+            try {
+                if (typeof Chart === 'undefined') {
+                    alert("⚠️ 錯誤：無法載入圖表工具！\n請確認網路連線正常。");
+                    return;
+                }
+
+                // 取得輸入的室溫與水溫
+                let roomTemp = parseFloat(document.getElementById('roomTemp').value);
+                let startTemp = parseFloat(document.getElementById('startTemp').value);
+                
+                if (isNaN(roomTemp) || isNaN(startTemp)) {
+                    alert("⚠️ 請填寫正確的數字喔！");
+                    return;
+                }
+                if (startTemp <= roomTemp) {
+                    alert("⚠️ 咦？熱水溫度應該要比室內溫度高才對喔，請重新輸入！");
+                    return;
+                }
+
+                const times = [0, 5, 10, 15, 20, 25, 30];
+                const rateA = 0.050; // 一般水樽冷卻係數
+                const rateB = 0.035; // 塞棉花冷卻係數
+                const rateC = 0.015; // 包毛巾冷卻係數
+
+                let dataA = [], dataB = [], dataC = [], dataRoom = [];
+
+                // 根據牛頓冷卻定律計算
+                for (let t of times) {
+                    dataA.push((roomTemp + (startTemp - roomTemp) * Math.exp(-rateA * t)).toFixed(1));
+                    dataB.push((roomTemp + (startTemp - roomTemp) * Math.exp(-rateB * t)).toFixed(1));
+                    dataC.push((roomTemp + (startTemp - roomTemp) * Math.exp(-rateC * t)).toFixed(1));
+                    dataRoom.push(roomTemp); // 室溫維持一條平線
+                }
+
+                // 更新表格內容
+                updateTableRow('rowA', '🥶 一般水樽', dataA);
+                updateTableRow('rowB', '☁️ 塞棉花', dataB);
+                updateTableRow('rowC', '🧣 包毛巾', dataC);
+
+                // 顯示結果區塊
+                document.getElementById('resultCard').style.display = 'block';
+                document.getElementById('dataTable').style.display = 'table';
+                document.getElementById('chartContainer').style.display = 'block';
+
+                // 繪製圖表
+                drawChart(times, dataA, dataB, dataC, dataRoom, roomTemp, startTemp);
+
+            } catch (error) {
+                alert("網頁執行時發生錯誤：" + error.message + "\n請確保完整複製了程式碼。");
+            }
+        }
+
+        function updateTableRow(rowId, title, dataArray) {
+            const row = document.getElementById(rowId);
+            row.innerHTML = `<td><strong>${title}</strong></td>`;
+            dataArray.forEach(val => {
+                row.innerHTML += `<td>${val}</td>`;
+            });
+        }
+
+        function drawChart(labels, dataA, dataB, dataC, dataRoom, roomTemp, startTemp) {
+            const ctx = document.getElementById('coolingChart').getContext('2d');
+            if (myChart != null) {
+                myChart.destroy();
+            }
+
+            Chart.defaults.font.family = "'Comic Sans MS', '微軟正黑體', sans-serif";
+            Chart.defaults.font.size = 14;
+
+            // 計算 Y 軸合適的顯示範圍，讓圖表更美觀
+            let yMin = Math.floor(roomTemp / 10) * 10 - 10;
+            let yMax = Math.ceil(startTemp / 10) * 10 + 10;
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: '🥶 一般水樽', data: dataA, borderColor: '#0984e3', backgroundColor: 'rgba(9, 132, 227, 0.1)', borderWidth: 4, pointRadius: 6, tension: 0.3 },
+                        { label: '☁️ 塞棉花', data: dataB, borderColor: '#b2bec3', backgroundColor: 'rgba(178, 190, 195, 0.1)', borderWidth: 4, pointRadius: 6, tension: 0.3 },
+                        { label: '🧣 包毛巾', data: dataC, borderColor: '#ff7675', backgroundColor: 'rgba(255, 118, 117, 0.1)', borderWidth: 4, pointRadius: 6, tension: 0.3 },
+                        { label: '🏠 室內溫度 (熱平衡)', data: dataRoom, borderColor: '#fdcb6e', borderDash: [10, 5], borderWidth: 3, pointRadius: 0, tension: 0 } // 加入虛線表示室溫
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { min: yMin, max: yMax, title: { display: true, text: '溫度 (°C)', font: { size: 16, weight: 'bold' } } },
+                        x: { title: { display: true, text: '時間 (分鐘)', font: { size: 16, weight: 'bold' } } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { size: 16, weight: 'bold' } } },
+                        title: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
